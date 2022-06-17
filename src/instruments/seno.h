@@ -1,5 +1,5 @@
-#ifndef INSTRUMENT_DUMB
-#define INSTRUMENT_DUMB
+#ifndef SENO
+#define SENO
 
 #include <vector>
 #include <string>
@@ -10,9 +10,11 @@ namespace upc {
   class Seno: public upc::Instrument {
     EnvelopeADSR adsr;
     unsigned int index;
-	float A;
+  float A;
     std::vector<float> tbl;
-    float fd; //factor diezmado
+    float fi, //frec señal inicial (Fs/N)
+          //f0, 
+          fd; //factor diezmado
     /// \TODO Igual le faltan más parámetross
   public:
     Seno(const std::string &param = "");
