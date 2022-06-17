@@ -12,6 +12,7 @@ namespace upc {
     unsigned int index;
 	float A;
     std::vector<float> tbl;
+    float fd; //factor diezmado
     /// \TODO Igual le faltan más parámetross
   public:
     Seno(const std::string &param = "");

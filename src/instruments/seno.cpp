@@ -48,21 +48,43 @@ void Seno::command(long cmd, long note, long vel) {
   else if (cmd == 0) {	//Sound extinguished without waiting for release to end
     adsr.end();
   }
+
+
+  /// \aqui haurem de decidir Fm en funció del valor de note
+  // note=0 -> f = 8.1758Hz
+  // note=127 -> f = 12544Hz
+  //
+  // note = 69 + 12 * log2(f0/440)
+  // f0 = 440 * 2^((note-69)/12)
+  long f0 = 440 * exp2((note-69)/12); //Frecuencia del senyal que volem generar
+  //aquesta es la f a la que volem modular la tabla
+  //Fs = 44100Hz (mostreig)
+  // La frecuencia de la señal original tbl es Fs/N, en nuestro caso es 1102,5Hz
+  //Pero mejor la ponemos en función de las dos variables
+
+  //el factor de diezmado lo encontramos dividiento la f0 (queremos) entre la del señal original
+  fd = f0 * N / SamplingRate;
 }
 
 
 const vector<float> & Seno::synthesize() {
     /// \TODO
-  if (not adsr.active()) {
+  if (not adsr.active()) {  // no hay sonido
     x.assign(x.size(), 0);
     bActive = false;
     return x;
   }
-  else if (not bActive)
+  else if (not bActive)     // Tecla no pulsada
     return x;
 
-  for (unsigned int i=0; i<x.size(); ++i) {
-    x[i] = A * tbl[index++];
+  for (unsigned int i=0; i<x.size(); ++i) { //Mantenimiento
+    //Diezmamos la sinusoide
+    i_floor = floor(index * fd);
+    fd_floor = i_floor - index * fd;
+
+    x[i] = A * (fd_floor * tbl[i_floor] + (1-fd_floor) * tbl[i_floor+1]);
+    index++;
+
     if (index == tbl.size())
       index = 0;
   }
