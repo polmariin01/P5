@@ -28,7 +28,7 @@ permitan visualizar el funcionamiento de la curva ADSR.
 * Un instrumento con una envolvente ADSR genérica, para el que se aprecie con claridad cada uno de sus
   parámetros: ataque (A), caída (D), mantenimiento (S) y liberación (R).
 
-<img src="img/adsr_generica.png">
+<img src="img/adsr_generica.PNG">
 
 <p>És el ADSR correspondiente al archivo dumb.orc, los tiempos de ataque, caída i liberación no son especialmente
 largos ni cortos y el nivel de mantenimiento tampoco és ni muy alto ni muy bajo. <br> Se aprecian bien las 4 fases</p> 
@@ -38,14 +38,14 @@ largos ni cortos y el nivel de mantenimiento tampoco és ni muy alto ni muy bajo
   - Para un instrumento de este tipo, tenemos dos situaciones posibles:
     * El intérprete mantiene la nota *pulsada* hasta su completa extinción.
 
-  <img src="img/adsr_percusivo_puls.png">
+  <img src="img/adsr_percusivo_puls.PNG">
   <p>Es parecido al percusivo de más abajo, pero tiene un pequeño mantenimiento que aguanta un poco la nota. Sigue sonando percusivo, pero hay como un 'eco' al acabar que deja ver que aun hay nota pero no se oye como un instrumento no percusivo.</p> 
   <code>InstrumentDumb	ADSR_A=0.03; ADSR_D=0.05; ADSR_S=0.1; ADSR_R=0.1; N=40;</code>
 
     * El intérprete da por finalizada la nota antes de su completa extinción, iniciándose una disminución
 	  abrupta del sonido hasta su finalización.
 
-  <img src="img/adsr_percusivo.png">
+  <img src="img/adsr_percusivo.PNG">
   <p>Tiene un tiempo de ataque más o menos rápido, la caída igual. No tiene mantenimienot, por lo tanto tampoco liberación. Se escucha como una notificación (usando InstrumentDumb) y tiene un efecto sonoro de "click"</p> 
   <code>InstrumentDumb	ADSR_A=0.03; ADSR_D=0.1; ADSR_S=0.0; ADSR_R=0.3; N=40;</code>
 
@@ -55,7 +55,7 @@ largos ni cortos y el nivel de mantenimiento tampoco és ni muy alto ni muy bajo
   ellos, el ataque es relativamente rápido hasta alcanzar el nivel de mantenimiento (sin sobrecarga), y la
   liberación también es bastante rápida.
 
-  <img src="img/adsr_plano.png">
+  <img src="img/adsr_plano.PNG">
   <p>No tiene caída y el nivel de mantenimiento és máximo, esto hace que sea plano y no tengo un "pico" inicial. Ataque  y liberación más o menos rápidos. Suena como un pitido de una alarma (con InstrumentDumb y duracíon corta) pero recuerda un poco a una flauta.</p>
   <code>InstrumentDumb	ADSR_A=0.07; ADSR_D=0.0; ADSR_S=1.0; ADSR_R=0.1; N=40;</code>
 
