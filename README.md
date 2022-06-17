@@ -69,9 +69,124 @@ Implemente el instrumento `Seno` tomando como modelo el `InstrumentDumb`. La se�
 mediante búsqueda de los valores en una tabla.
 
 - Incluya, a continuación, el código del fichero `seno.cpp` con los métodos de la clase Seno.
+
+```cPP
+#include <iostream>
+#include <math.h>
+#include "seno.h"
+#include "keyvalue.h"
+
+#include <stdlib.h>
+
+using namespace upc;
+using namespace std;
+
+Seno::Seno(const std::string &param) 
+  : adsr(SamplingRate, param) {
+    // \TODO
+  bActive = false;
+  x.resize(BSIZE);
+  /*
+    You can use the class keyvalue to parse "param" and configure your instrument.
+    Take a Look at keyvalue.h    
+  */
+  KeyValue kv(param);
+  int N;
+
+  if (!kv.to_int("N",N))
+    N = 40; //default value
+  
+  fi = SamplingRate / N;
+  //Create a tbl with one period of a sinusoidal wave, ftbl = FS/N
+  tbl.resize(N);
+  float phase = 0, step = 2 * M_PI /(float) N;
+  index = 0;
+  for (int i=0; i < N ; ++i) {
+    tbl[i] = sin(phase);
+    phase += step;
+  }
+  }
+
+void Seno::command(long cmd, long note, long vel) {
+    /// \TODO diria que está bé pero
+  if (cmd == 9) {		//'Key' pressed: attack begins
+    bActive = true;
+    adsr.start();
+    index = 0;
+	A = vel / 127.;
+    float power = (note - 69.0) / 12.0;
+    float f0 = 440 * pow(2.0,power);
+    fd = f0 / fi;
+    //cout << "Note: " << note << " pow: " << power << " F0: " << f0 << " FD: " << fd << "\n";
+  }
+  else if (cmd == 8) {	//'Key' released: sustain ends, release begins
+    adsr.stop();
+  }
+  else if (cmd == 0) {	//Sound extinguished without waiting for release to end
+    adsr.end();
+  }
+  /// \aqui haurem de decidir Fm en funció del valor de note
+  // note=0 -> f = 8.1758Hz, note=127 -> f = 12544Hz
+  // note = 69 + 12 * log2(f0/440)
+  // f0 = 440 * 2^((note-69)/12)
+   //Frecuencia del senyal que volem generar
+  //aquesta es la f a la que volem modular la tabla
+  //Fs = 44100Hz (mostreig)
+  // La frecuencia de la señal original tbl es Fs/N, en nuestro caso es 1102,5Hz
+  //Pero mejor la ponemos en función de las dos variables
+
+  //el factor de diezmado lo encontramos dividiento la f0 (queremos) entre la del señal original
+}
+
+
+const vector<float> & Seno::synthesize() {
+    /// \TODO
+  if (not adsr.active()) {  // no hay sonido
+    x.assign(x.size(), 0);
+    bActive = false;
+    return x;
+  }
+  else if (not bActive)     // Tecla no pulsada
+    return x;
+
+  for (unsigned int i=0; i<x.size(); ++i) { //Mantenimiento
+    //Diezmamos la sinusoide
+    float i_floor = index * fd;
+    //cout << "Index nou: " << i_floor << " ";
+    while (i_floor >= tbl.size())
+        i_floor -= tbl.size();      //especie de modulo para que el indice sea un valor válido
+    float fd_floor = i_floor - floor(i_floor);
+    //cout << fd_floor << "\n";
+    i_floor = floor(i_floor);
+
+    x[i] = A * ((1-fd_floor) * tbl[i_floor] + fd_floor * tbl[i_floor+1]);
+    index++;
+
+    //if (index == tbl.size())
+    //  index = 0;
+  }
+  adsr(x); //apply envelope to x and update internal status of ADSR
+
+  return x;
+}
+
+```
+
+
 - Explique qué método se ha seguido para asignar un valor a la señal a partir de los contenidos en la tabla,
+
+<p>
+Primero hemos buscado la frecuencia deseada en función del valor de la variable *note*, le llamaremos f0. Sabiendo que note = 69 + 12 * log2(f0/440). Entonces f0 = 440 * 2^((note-69)/12).<br>
+Previamente teniamos también la frecuencia de la señal de la tabla, el período tiene N muestras, a una frecuencia de muestreo SampleRate de 44100Hz (en nuestro caso). Entonces la frecuencia fundamental de este periodo, llamemosle *fi*, es de 1102,5Hz.<br>
+Deseamos convertir una semi-señal de 1102,5Hz en una señal completa de frecuencia F0. Lo que hemos hecho es diezmar la señal como si fuera infinita. Hemos buscado un factor de diezmado FD = f0 / fi, es el que usamos para diezmar la señal original. El valor del indice multiplicado por el FD no suele dar un valor entero, entonces aquí interpolamos la señal para obtener una representación lineal de los dos vecinos entre los que se encuentra este valor. Este nuevo valor de indice debe estar siempre por debajo de la longitud total de la señal original.<br>
+Entonces, diezmando y interpolando hemos creado señales nuevos. Escuchando el audio creemos que se oye bastante bien. Respecto a resultados anteriores que hemos hecho, el final se oye bastante limpio y si ruido, y està la escalera bien afinada.
+</p>
+
+
   e incluya una gráfica en la que se vean claramente (use pelotitas en lugar de líneas) los valores de la
   tabla y los de la señal generada.
+
+  
 - Si ha implementado la síntesis por tabla almacenada en fichero externo, incluya a continuación el código
   del método `command()`.
 
@@ -81,10 +196,17 @@ mediante búsqueda de los valores en una tabla.
   sinusoidal. Deberá explicar detalladamente cómo se manifiestan los parámetros del efecto (frecuencia e
   índice de modulación) en la señal generada (se valorará que la explicación esté contenida en las propias
   gráficas, sin necesidad de *literatura*).
+
+<img src="img/nota_sin_efecto.PNG">
+<img src="img/nota_tremolo.PNG">
+<br>
+<img src="img/vibrato_vs_normal.PNG">
+
 - Si ha generado algún efecto por su cuenta, explique en qué consiste, cómo lo ha implementado y qué
   resultado ha producido. Incluya, en el directorio `work/ejemplos`, los ficheros necesarios para apreciar
   el efecto, e indique, a continuación, la orden necesaria para generar los ficheros de audio usando el
   programa `synth`.
+
 
 ### Síntesis FM.
 

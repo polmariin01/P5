@@ -53,8 +53,6 @@ void Seno::command(long cmd, long note, long vel) {
   else if (cmd == 0) {	//Sound extinguished without waiting for release to end
     adsr.end();
   }
-
-
   /// \aqui haurem de decidir Fm en funció del valor de note
   // note=0 -> f = 8.1758Hz, note=127 -> f = 12544Hz
   // note = 69 + 12 * log2(f0/440)
@@ -66,7 +64,6 @@ void Seno::command(long cmd, long note, long vel) {
   //Pero mejor la ponemos en función de las dos variables
 
   //el factor de diezmado lo encontramos dividiento la f0 (queremos) entre la del señal original
-  
 }
 
 
