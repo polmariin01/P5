@@ -14,9 +14,12 @@ namespace upc {
   Instrument * get_instrument(const string &name,
 			      const string &parameters) {
     Instrument * pInst = 0;
-    //    cout << name << ": " << parameters << endl;
+        cout << name << ": " << parameters << endl;
     if (name == "InstrumentDumb") {
       pInst = (Instrument *) new InstrumentDumb(parameters);
+    }
+    if (name == "Seno") {
+      pInst = (Instrument *) new Seno(parameters);
     }
     return pInst;
   }
