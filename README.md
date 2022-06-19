@@ -70,7 +70,7 @@ mediante búsqueda de los valores en una tabla.
 
 - Incluya, a continuación, el código del fichero `seno.cpp` con los métodos de la clase Seno.
 
-```cPP
+```cpp
 #include <iostream>
 #include <math.h>
 #include "seno.h"

@@ -23,9 +23,9 @@ Vibra::Vibra(const std::string &param)
   if (!kv.to_int("N",N))
     N = 40; //default value
   if (!kv.to_float("I",I))
-    I = 40; //default value 
+    I = 1; //default value 
   if (!kv.to_int("F",fhz))
-    N = 40; //default value
+    fhz = 8; //default value
 
   fi = SamplingRate / N;
   Fm = SamplingRate / fhz;
@@ -51,17 +51,6 @@ void Vibra::command(long cmd, long note, long vel) {
   else if (cmd == 0) {	//Sound extinguished without waiting for release to end
     adsr.end();
   }
-  /// \aqui haurem de decidir Fm en funció del valor de note
-  // note=0 -> f = 8.1758Hz, note=127 -> f = 12544Hz
-  // note = 69 + 12 * log2(f0/440)
-  // f0 = 440 * 2^((note-69)/12)
-   //Frecuencia del senyal que volem generar
-  //aquesta es la f a la que volem modular la tabla
-  //Fs = 44100Hz (mostreig)
-  // La frecuencia de la señal original tbl es Fs/N, en nuestro caso es 1102,5Hz
-  //Pero mejor la ponemos en función de las dos variables
-
-  //el factor de diezmado lo encontramos dividiento la f0 (queremos) entre la del señal original
 }
 
 const vector<float> & Vibra::synthesize() {
