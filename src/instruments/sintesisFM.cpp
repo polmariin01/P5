@@ -1,6 +1,6 @@
 #include <iostream>
 #include <math.h>
-#include "vibra.h"
+#include "sintesisFM.h"
 #include "keyvalue.h"
 
 #include <stdlib.h>
@@ -8,7 +8,7 @@
 using namespace upc;
 using namespace std;
 
-Vibra::Vibra(const std::string &param) 
+SintesisFM::SintesisFM(const std::string &param) 
   : adsr(SamplingRate, param) {
     // \TODO
   bActive = false;
@@ -18,21 +18,23 @@ Vibra::Vibra(const std::string &param)
     Take a Look at keyvalue.h    
   */
   KeyValue kv(param);
-  int N,fhz;
+  int N;
 
   if (!kv.to_int("N",N))
     N = 40; //default value
   if (!kv.to_float("I",I))
-    I = 40; //default value 
-  if (!kv.to_int("F",fhz))
-    N = 40; //default value
+    I = 1; //default value 
+  if (!kv.to_int("N1",N1))
+    N1 = 4; //default value
+  if (!kv.to_int("N2",N2))
+    N2 = 7; //default value
 
-  fi = SamplingRate / N;
-  Fm = SamplingRate / fhz;
+  //fi = SamplingRate / N;
+  //Fm = SamplingRate / fhz;
   I = 1. - pow(2, -I / 12.);
 }
 
-void Vibra::command(long cmd, long note, long vel) {
+void SintesisFM::command(long cmd, long note, long vel) {
     /// \TODO diria que está bé pero
   if (cmd == 9) {		//'Key' pressed: attack begins
     bActive = true;
@@ -40,10 +42,9 @@ void Vibra::command(long cmd, long note, long vel) {
     index1 = 0;
     index2 = 0;
 	  A = vel / 127.;
-    f0 = 440. * (note - 69.) / 12.;
-    fd = f0 / fi;
-
-    //cout << "Note: " << note << " pow: " << power << " F0: " << f0 << " FD: " << fd << "\n";
+    float power = (note - 69.0) / 12.0;
+    fc = 440 * pow(2.0,power);
+    fm = (N2/N1) * fc;
   }
   else if (cmd == 8) {	//'Key' released: sustain ends, release begins
     adsr.stop();
@@ -51,20 +52,9 @@ void Vibra::command(long cmd, long note, long vel) {
   else if (cmd == 0) {	//Sound extinguished without waiting for release to end
     adsr.end();
   }
-  /// \aqui haurem de decidir Fm en funció del valor de note
-  // note=0 -> f = 8.1758Hz, note=127 -> f = 12544Hz
-  // note = 69 + 12 * log2(f0/440)
-  // f0 = 440 * 2^((note-69)/12)
-   //Frecuencia del senyal que volem generar
-  //aquesta es la f a la que volem modular la tabla
-  //Fs = 44100Hz (mostreig)
-  // La frecuencia de la señal original tbl es Fs/N, en nuestro caso es 1102,5Hz
-  //Pero mejor la ponemos en función de las dos variables
-
-  //el factor de diezmado lo encontramos dividiento la f0 (queremos) entre la del señal original
 }
 
-const vector<float> & Vibra::synthesize() {
+const vector<float> & SintesisFM::synthesize() {
     /// \TODO
   if (not adsr.active()) {  // no hay sonido
     x.assign(x.size(), 0);
@@ -77,8 +67,8 @@ const vector<float> & Vibra::synthesize() {
   for (unsigned int i=0; i<x.size(); ++i) { //Mantenimiento
     x[i] = A * sin(index1 + I*sin(index2));
 
-    index1 += 2 * M_PI * SamplingRate / f0;
-    index2 += 2 * M_PI * Fm;
+    index1 += 2 * M_PI * SamplingRate / fc;
+    index2 += 2 * M_PI * SamplingRate / fm;
 
     while (index1 >= 2*M_PI)  index1 -= 2*M_PI;
     while (index2 >= 2*M_PI)  index2 -= 2*M_PI;
